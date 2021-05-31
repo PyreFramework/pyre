@@ -46,9 +46,16 @@ class Factory(Node, metaclass=FactoryMaker, implements=Producer, internal=True):
             # refresh them
             product.pyre_make(**kwds)
         # if anything were stale
-        if stale:
+        if stale or self.pyre_stale:
             # invoke me
             self.pyre_run(stale=stale, **kwds)
+            # and, if all goes well, clear my status
+            self.pyre_stale = False
+            # go through my outputs
+            for output, _ in self.pyre_outputs():
+                # and clear their stats as well
+                output.pyre_stale = False
+
         # all done
         return
 
@@ -198,7 +205,7 @@ class Factory(Node, metaclass=FactoryMaker, implements=Producer, internal=True):
         # grab the factory
         from .FactoryStatus import FactoryStatus
         # make one and return it
-        return FactoryStatus(**kwds)
+        return FactoryStatus(stale=True, **kwds)
 
 
     # introspection
